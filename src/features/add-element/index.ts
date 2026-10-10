@@ -1,0 +1,1 @@
+export { ElementsPalette } from './ElementsPalette';

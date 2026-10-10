@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import styles from './LeftPanel.module.css';
+import { ElementsPalette } from '../../features/add-element';
+import { LayersTree } from '../../features/reorder-layers';
 
 type Tab = 'elements' | 'layers';
 
@@ -21,11 +23,7 @@ export function LeftPanel() {
           Layers
         </button>
       </div>
-      <div className={styles.body}>
-        <p className={styles.placeholder}>
-          {tab === 'elements' ? 'Elements palette — coming in M5.' : 'Layers tree — coming in M5.'}
-        </p>
-      </div>
+      <div className={styles.body}>{tab === 'elements' ? <ElementsPalette /> : <LayersTree />}</div>
     </aside>
   );
 }

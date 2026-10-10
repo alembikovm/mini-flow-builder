@@ -1,0 +1,48 @@
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 8px;
+  background: var(--mfb-bg-sunken);
+  border: 1px solid var(--mfb-border);
+  border-radius: 6px;
+  cursor: grab;
+  text-align: center;
+  color: var(--mfb-text);
+  font-size: 12px;
+  user-select: none;
+}
+
+.item:hover {
+  background: var(--mfb-bg-panel);
+  border-color: var(--mfb-border-strong);
+}
+
+.item:active {
+  cursor: grabbing;
+}
+
+.icon {
+  width: 32px;
+  height: 20px;
+  border: 1px dashed var(--mfb-text-faint);
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--mfb-text-faint);
+  font-size: 11px;
+}
+
+.dragGhost {
+  background: var(--mfb-accent-weak);
+  border-color: var(--mfb-accent);
+}

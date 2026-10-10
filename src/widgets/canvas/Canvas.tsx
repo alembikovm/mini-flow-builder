@@ -1,4 +1,5 @@
 import { useCallback, useRef } from 'react';
+import { useDroppable } from '@dnd-kit/core';
 import styles from './Canvas.module.css';
 import { useEditor } from '../../app/store';
 import { NodeMount } from './NodeMount';
@@ -59,6 +60,14 @@ export function Canvas() {
     [preview, findNodeId, selectNode],
   );
 
+  // Fallback drop target: the whole phone screen accepts drops → appends to
+  // the current screen's root. Per-stack precise drops land in M5+ via each
+  // StackRenderer wrapping itself in a droppable — for M5 the layers tree
+  // already supports precise re-parenting into any stack.
+  const { setNodeRef: setCanvasDropRef, isOver: canvasIsOver } = useDroppable({
+    id: 'canvas-root',
+  });
+
   return (
     <div className={styles.canvas}>
       <div className={styles.deviceBar}>
@@ -99,9 +108,18 @@ export function Canvas() {
           style={{ borderRadius: spec.cornerRadius + 10, width: w + 20, height: h + 20 }}
         >
           <div
-            ref={stageRef}
+            ref={(el) => {
+              stageRef.current = el;
+              setCanvasDropRef(el);
+            }}
             className={`${styles.phoneScreen} ${theme === 'dark' ? styles.dark : ''}`}
-            style={{ width: w, height: h, borderRadius: spec.cornerRadius }}
+            style={{
+              width: w,
+              height: h,
+              borderRadius: spec.cornerRadius,
+              outline: canvasIsOver ? '2px dashed var(--mfb-accent)' : undefined,
+              outlineOffset: 2,
+            }}
             onPointerMove={onPointerMove}
             onPointerLeave={onPointerLeave}
             onClick={onClick}
