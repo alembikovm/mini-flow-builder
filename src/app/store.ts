@@ -27,6 +27,7 @@ import {
 } from '../core/ops';
 import type { Doc, NodeId, NodeStyle, NodeType, PropsOfType, ScreenId } from '../core/model';
 import { createSeedDoc } from '../core/seed';
+import { safeParseDoc } from '../core/schema';
 import {
   beginTransaction,
   canRedo,
@@ -44,6 +45,63 @@ export type DeviceId = 'iphone' | 'iphoneSE' | 'android';
 export type Orientation = 'portrait' | 'landscape';
 export type Theme = 'light' | 'dark';
 
+export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
+
+export type PublishedVersion = {
+  version: number;
+  publishedAt: string;
+  doc: Doc;
+};
+
+export type JsonView = 'draft' | 'published';
+
+const LS_KEY = 'mfb:draft:v1';
+const LS_PUBLISHED_KEY = 'mfb:published:v1';
+const LS_FLOW_NAME_KEY = 'mfb:flowName:v1';
+
+type SavedShape = { doc: Doc; flowName: string };
+
+function loadSaved(): SavedShape | null {
+  if (typeof localStorage === 'undefined') return null;
+  const raw = localStorage.getItem(LS_KEY);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as { doc?: unknown; flowName?: unknown };
+    if (!parsed || typeof parsed !== 'object' || !parsed.doc) return null;
+    const result = safeParseDoc(parsed.doc);
+    if (!result.ok) return null;
+    return {
+      doc: result.doc,
+      flowName: typeof parsed.flowName === 'string' ? parsed.flowName : 'Untitled flow',
+    };
+  } catch {
+    return null;
+  }
+}
+
+function loadPublished(): PublishedVersion[] {
+  if (typeof localStorage === 'undefined') return [];
+  const raw = localStorage.getItem(LS_PUBLISHED_KEY);
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    const out: PublishedVersion[] = [];
+    for (const v of parsed) {
+      if (!v || typeof v !== 'object') continue;
+      const r = safeParseDoc((v as { doc?: unknown }).doc);
+      if (!r.ok) continue;
+      const ver = (v as { version?: unknown }).version;
+      const at = (v as { publishedAt?: unknown }).publishedAt;
+      if (typeof ver !== 'number' || typeof at !== 'string') continue;
+      out.push({ version: ver, publishedAt: at, doc: r.doc });
+    }
+    return out;
+  } catch {
+    return [];
+  }
+}
+
 export type EditorState = {
   // Doc + history
   history: HistoryState<Doc>;
@@ -59,6 +117,15 @@ export type EditorState = {
   device: DeviceId;
   orientation: Orientation;
   theme: Theme;
+
+  // Autosave / publish
+  saveStatus: SaveStatus;
+  publishedVersions: PublishedVersion[];
+  jsonView: JsonView;
+
+  publish: () => void;
+  setJsonView: (v: JsonView) => void;
+  _setSaveStatus: (s: SaveStatus) => void;
 
   // History actions
   undo: () => void;
@@ -122,11 +189,15 @@ function initialState(): Pick<
   | 'device'
   | 'orientation'
   | 'theme'
+  | 'saveStatus'
+  | 'publishedVersions'
+  | 'jsonView'
 > {
-  const doc = createSeedDoc();
+  const saved = loadSaved();
+  const doc = saved?.doc ?? createSeedDoc();
   return {
     history: initHistory(doc),
-    flowName: 'Untitled flow',
+    flowName: saved?.flowName ?? 'Untitled flow',
     currentScreenId: doc.screenOrder[0]!,
     selectedNodeId: null,
     hoveredNodeId: null,
@@ -136,6 +207,9 @@ function initialState(): Pick<
     device: 'iphone',
     orientation: 'portrait',
     theme: 'light',
+    saveStatus: saved ? 'saved' : 'idle',
+    publishedVersions: loadPublished(),
+    jsonView: 'draft',
   };
 }
 
@@ -317,8 +391,32 @@ export const useEditor = create<EditorState>()((set, get) => {
     setDevice: (d) => set({ device: d }),
     setOrientation: (o) => set({ orientation: o }),
     setTheme: (t) => set({ theme: t }),
+
+    // ------- publish / save ------------------------------------------------
+    publish: () => {
+      const { history, publishedVersions } = get();
+      const nextVersion = (publishedVersions[publishedVersions.length - 1]?.version ?? 0) + 1;
+      const snapshot: PublishedVersion = {
+        version: nextVersion,
+        publishedAt: new Date().toISOString(),
+        doc: structuredClone(history.doc),
+      };
+      const nextList = [...publishedVersions, snapshot];
+      set({ publishedVersions: nextList });
+      try {
+        localStorage.setItem(LS_PUBLISHED_KEY, JSON.stringify(nextList));
+      } catch {
+        /* storage quota / privacy mode — ignore, in-memory list still works */
+      }
+    },
+
+    setJsonView: (v) => set({ jsonView: v }),
+    _setSaveStatus: (s) => set({ saveStatus: s }),
   };
 });
+
+export const LS_DRAFT_KEY = LS_KEY;
+export const LS_FLOW_NAME_STORAGE_KEY = LS_FLOW_NAME_KEY;
 
 // Selectors kept here so components don't accidentally subscribe to the whole
 // store object. Each returns a primitive or a stable reference.

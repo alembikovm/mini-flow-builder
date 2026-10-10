@@ -1,6 +1,13 @@
 import styles from './TopBar.module.css';
 import { useEditor } from '../../app/store';
 
+const SAVE_LABEL: Record<string, string> = {
+  idle: '',
+  saving: 'Saving…',
+  saved: 'Changes saved',
+  error: 'Save failed',
+};
+
 export function TopBar() {
   const flowName = useEditor((s) => s.flowName);
   const setFlowName = useEditor((s) => s.setFlowName);
@@ -12,6 +19,8 @@ export function TopBar() {
   const setPreview = useEditor((s) => s.setPreview);
   const showJson = useEditor((s) => s.showJson);
   const setShowJson = useEditor((s) => s.setShowJson);
+  const saveStatus = useEditor((s) => s.saveStatus);
+  const publish = useEditor((s) => s.publish);
 
   return (
     <div className={styles.bar}>
@@ -44,7 +53,7 @@ export function TopBar() {
 
       <div className={styles.spacer} />
 
-      <span className={styles.status}>Changes saved</span>
+      <span className={styles.status}>{SAVE_LABEL[saveStatus] ?? ''}</span>
 
       <button
         className={`${styles.btn} ${showJson ? styles.toggleOn : ''}`}
@@ -59,7 +68,9 @@ export function TopBar() {
       >
         {preview ? 'Exit preview' : 'Preview'}
       </button>
-      <button className={`${styles.btn} ${styles.primary}`}>Publish</button>
+      <button className={`${styles.btn} ${styles.primary}`} onClick={() => publish()}>
+        Publish
+      </button>
     </div>
   );
 }
