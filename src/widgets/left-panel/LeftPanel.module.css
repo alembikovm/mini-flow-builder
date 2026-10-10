@@ -1,0 +1,43 @@
+.panel {
+  width: 240px;
+  flex: 0 0 240px;
+  background: var(--mfb-bg-panel);
+  border-right: 1px solid var(--mfb-border);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--mfb-border);
+}
+
+.tab {
+  flex: 1;
+  padding: 10px 12px;
+  text-align: center;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--mfb-text-muted);
+  font-size: 12px;
+  border-bottom: 2px solid transparent;
+}
+
+.tab.active {
+  color: var(--mfb-text);
+  border-bottom-color: var(--mfb-accent);
+}
+
+.body {
+  padding: 12px;
+  overflow: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.placeholder {
+  color: var(--mfb-text-faint);
+  font-size: 12px;
+}

@@ -1,0 +1,79 @@
+.bar {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 12px;
+  background: var(--mfb-bg-panel);
+  border-bottom: 1px solid var(--mfb-border);
+}
+
+.name {
+  font-size: 13px;
+  font-weight: 500;
+  padding: 4px 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 4px;
+  min-width: 160px;
+  outline: none;
+}
+
+.name:focus {
+  border-color: var(--mfb-border-strong);
+  background: var(--mfb-bg-sunken);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.iconBtn {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  color: var(--mfb-text);
+}
+
+.iconBtn:hover:not(:disabled) {
+  background: var(--mfb-bg-hover);
+}
+
+.iconBtn:disabled {
+  color: var(--mfb-text-faint);
+  cursor: default;
+}
+
+.status {
+  color: var(--mfb-text-muted);
+  font-size: 12px;
+  min-width: 96px;
+  text-align: right;
+}
+
+.btn {
+  padding: 4px 10px;
+  border: 1px solid var(--mfb-border-strong);
+  background: var(--mfb-bg-panel);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.btn.primary {
+  background: var(--mfb-accent);
+  color: #fff;
+  border-color: var(--mfb-accent);
+}
+
+.btn.toggleOn {
+  background: var(--mfb-accent-weak);
+  border-color: var(--mfb-accent);
+  color: var(--mfb-accent);
+}

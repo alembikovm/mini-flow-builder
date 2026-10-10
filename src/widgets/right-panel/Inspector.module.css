@@ -1,0 +1,27 @@
+.panel {
+  width: 280px;
+  flex: 0 0 280px;
+  background: var(--mfb-bg-panel);
+  border-left: 1px solid var(--mfb-border);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.header {
+  padding: 12px;
+  border-bottom: 1px solid var(--mfb-border);
+  font-weight: 500;
+}
+
+.body {
+  padding: 12px;
+  overflow: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.placeholder {
+  color: var(--mfb-text-faint);
+  font-size: 12px;
+}

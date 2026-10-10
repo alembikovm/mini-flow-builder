@@ -126,6 +126,55 @@ on the same store and is explicitly NOT in history.
 
 ---
 
+## 6. Overlay OUTSIDE the preview DOM
+
+**Context.** We want hover + selection outlines in the editor, but the preview
+should match pixel-for-pixel what the native SDK renders.
+
+**Decision.** Rendered DOM nodes carry `data-node-id` and have zero
+editor-specific styling. The `SelectionOverlay` is a sibling, absolute-
+positioned layer that queries rects via `getBoundingClientRect` relative to a
+`stageRef`, listens for size changes via `ResizeObserver`, and recomputes when
+the doc revision bumps.
+
+**Trade-offs.**
+- + Toggling preview mode has no visual effect on the preview; we just hide
+  the overlay. Comparing "editor preview" to "device screenshot" is a
+  one-pixel diff.
+- + No React re-render of the preview tree when the hover id changes — the
+  overlay owns that state and re-renders only itself.
+- − Rects can go stale if layout changes without a size change on the stage
+  (e.g. a font loads late). The `revision` number from history catches
+  every doc-induced change; `ResizeObserver` catches ambient layout.
+- − Precision depends on `getBoundingClientRect`. In the current scope that's
+  fine; a stress test with transforms would need more care.
+
+---
+
+## 7. Per-node Zustand subscription via `NodeMount`
+
+**Context.** React.memo on a renderer that takes `doc` as a prop still re-
+renders siblings on every edit because the top-level `doc` reference changes.
+
+**Decision.** `entities/node/*` renderers are pure (take a resolved `node` and
+a `renderChild(id, direction)` callback). `widgets/canvas/NodeMount`
+subscribes to `useEditor(s => s.history.doc.nodes[id])` for exactly one node,
+then recurses by rendering a new `NodeMount` for each child id. When a
+mutation touches node X, only `NodeMount(X)` re-renders — its siblings'
+subscriptions see the same reference and bail out.
+
+**Trade-offs.**
+- + Isolation is automatic — no manual `memo` + comparator; Zustand's shallow
+  subscription does the work.
+- + The ESLint boundary (`entities` must not import `app`) stays clean: the
+  store lives in `app`, the subscription hook is in `widgets`.
+- − The `renderChild` callback is a fresh function per render, which means
+  React.memo on `NodeRenderer` is defeated. That's fine because the real
+  isolation boundary is `NodeMount`; `memo` on the renderer is a leftover
+  optimisation that we'll measure (and probably remove) in M8.
+
+---
+
 ## Next steps at scale (placeholder — fleshed out in M8)
 
 - **Collaborative editing.** Replace the Zustand doc slice with a Yjs doc of
