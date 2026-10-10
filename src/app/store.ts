@@ -54,6 +54,7 @@ export type EditorState = {
   selectedNodeId: NodeId | null;
   hoveredNodeId: NodeId | null;
   preview: boolean;
+  previewReturnScreenId: ScreenId | null;
   showJson: boolean;
   device: DeviceId;
   orientation: Orientation;
@@ -116,6 +117,7 @@ function initialState(): Pick<
   | 'selectedNodeId'
   | 'hoveredNodeId'
   | 'preview'
+  | 'previewReturnScreenId'
   | 'showJson'
   | 'device'
   | 'orientation'
@@ -129,6 +131,7 @@ function initialState(): Pick<
     selectedNodeId: null,
     hoveredNodeId: null,
     preview: false,
+    previewReturnScreenId: null,
     showJson: false,
     device: 'iphone',
     orientation: 'portrait',
@@ -288,7 +291,28 @@ export const useEditor = create<EditorState>()((set, get) => {
 
     // ------- misc UI ------------------------------------------------------
     setFlowName: (name) => set({ flowName: name }),
-    setPreview: (on) => set({ preview: on, selectedNodeId: null, hoveredNodeId: null }),
+    setPreview: (on) => {
+      const state = get();
+      if (on) {
+        set({
+          preview: true,
+          previewReturnScreenId: state.currentScreenId,
+          selectedNodeId: null,
+          hoveredNodeId: null,
+        });
+      } else {
+        const target = state.previewReturnScreenId;
+        set({
+          preview: false,
+          previewReturnScreenId: null,
+          selectedNodeId: null,
+          hoveredNodeId: null,
+          ...(target && state.history.doc.screens[target]
+            ? { currentScreenId: target }
+            : {}),
+        });
+      }
+    },
     setShowJson: (on) => set({ showJson: on }),
     setDevice: (d) => set({ device: d }),
     setOrientation: (o) => set({ orientation: o }),

@@ -4,7 +4,8 @@
 // is also where the ESLint boundary that forbids entities → app is kept
 // clean: entities render pure data; the store subscription lives here.
 
-import type { NodeId } from '../../core/model';
+import { useCallback } from 'react';
+import type { Action, NodeId } from '../../core/model';
 import { useEditor } from '../../app/store';
 import { NodeRenderer } from '../../entities/node';
 
@@ -17,12 +18,24 @@ export function NodeMount({ id, parentDirection }: NodeMountProps) {
   const node = useEditor((s) => s.history.doc.nodes[id]);
   const theme = useEditor((s) => s.theme);
   const preview = useEditor((s) => s.preview);
+  const setCurrentScreen = useEditor((s) => s.setCurrentScreen);
+  const setPreview = useEditor((s) => s.setPreview);
+
+  const onAction = useCallback(
+    (action: Action) => {
+      if (action.type === 'navigate') setCurrentScreen(action.screenId);
+      else if (action.type === 'close') setPreview(false);
+    },
+    [setCurrentScreen, setPreview],
+  );
+
   if (!node) return null;
   return (
     <NodeRenderer
       node={node}
       theme={theme}
       preview={preview}
+      onAction={onAction}
       {...(parentDirection !== undefined ? { parentDirection } : {})}
       renderChild={(childId, dir) => <NodeMount key={childId} id={childId} parentDirection={dir} />}
     />

@@ -5,6 +5,7 @@ import { useEditor } from '../../app/store';
 import { NodeMount } from './NodeMount';
 import { DEVICES } from './devices';
 import { SelectionOverlay, makeNameLookup } from '../../entities/selection-overlay';
+import { ScreensBar } from '../screens-bar';
 
 export function Canvas() {
   const stageRef = useRef<HTMLDivElement | null>(null);
@@ -101,6 +102,8 @@ export function Canvas() {
           Dark
         </button>
       </div>
+
+      <ScreensBar />
 
       <div className={styles.stageWrap}>
         <div

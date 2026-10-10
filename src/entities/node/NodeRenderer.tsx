@@ -8,7 +8,7 @@
 // into the store).
 
 import { memo } from 'react';
-import type { Node, NodeId } from '../../core/model';
+import type { Action, Node, NodeId } from '../../core/model';
 import type { Theme } from './types';
 import { StackRenderer } from './StackRenderer';
 import { TextRenderer } from './TextRenderer';
@@ -25,6 +25,8 @@ export type NodeRendererProps = {
   preview: boolean;
   parentDirection?: 'vertical' | 'horizontal';
   renderChild: RenderChild;
+  /** Called when a Button is clicked in preview mode. */
+  onAction?: (action: Action) => void;
 };
 
 export const NodeRenderer = memo(function NodeRenderer(props: NodeRendererProps) {
