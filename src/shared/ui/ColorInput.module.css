@@ -1,0 +1,54 @@
+.row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.swatchWrap {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  border: 1px solid var(--mfb-border-strong);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.swatchWrap input[type='color'] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.swatch {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hex {
+  flex: 1;
+  min-width: 0;
+  padding: 2px 4px;
+  border: 1px solid transparent;
+  background: var(--mfb-bg-sunken);
+  border-radius: 4px;
+  font: inherit;
+  font-size: 12px;
+  outline: none;
+  color: inherit;
+}
+
+.hex:focus {
+  border-color: var(--mfb-accent);
+  background: var(--mfb-bg-panel);
+}
+
+.themeLabel {
+  color: var(--mfb-text-faint);
+  width: 32px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}

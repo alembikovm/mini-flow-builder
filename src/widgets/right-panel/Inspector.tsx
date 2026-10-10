@@ -1,16 +1,38 @@
 import styles from './Inspector.module.css';
 import { useEditor } from '../../app/store';
+import { StackInspector } from './panels/StackInspector';
+import { TextInspector } from './panels/TextInspector';
+import { ImageInspector } from './panels/ImageInspector';
+import { ButtonInspector } from './panels/ButtonInspector';
+import { OptionsInspector } from './panels/OptionsInspector';
+import { SpacerInspector } from './panels/SpacerInspector';
+import { ScreenSettings } from './panels/ScreenSettings';
 
 export function Inspector() {
-  const selected = useEditor((s) =>
+  const node = useEditor((s) =>
     s.selectedNodeId ? s.history.doc.nodes[s.selectedNodeId] ?? null : null,
   );
-  const header = selected ? `${capitalize(selected.type)} — ${selected.name}` : 'Screen settings';
+  const header = node ? `${capitalize(node.type)} — ${node.name}` : 'Screen';
+
   return (
     <aside className={styles.panel}>
       <div className={styles.header}>{header}</div>
       <div className={styles.body}>
-        <p className={styles.placeholder}>Inspector controls — coming in M4.</p>
+        {node === null ? (
+          <ScreenSettings />
+        ) : node.type === 'stack' ? (
+          <StackInspector node={node} />
+        ) : node.type === 'text' ? (
+          <TextInspector node={node} />
+        ) : node.type === 'image' ? (
+          <ImageInspector node={node} />
+        ) : node.type === 'button' ? (
+          <ButtonInspector node={node} />
+        ) : node.type === 'options' ? (
+          <OptionsInspector node={node} />
+        ) : (
+          <SpacerInspector node={node} />
+        )}
       </div>
     </aside>
   );

@@ -175,6 +175,34 @@ subscriptions see the same reference and bail out.
 
 ---
 
+## 8. Scrub = one transaction, keystroke = coalesced commit
+
+**Context.** A single padding-scrub produces 50 intermediate `updateStyle`
+calls. Users expect one undo to revert the whole drag. Typing in a text field
+produces one commit per keystroke — users expect undo to revert the whole word
+or a reasonable chunk.
+
+**Decision.** Shared `NumberInput` fires `onBeginScrub` / `onEndScrub` around
+label-drag. Inspector panels wrap those in `useScrub(label)`, which calls
+`beginTx(label)` → every intermediate `updateStyle` accumulates into the
+pending transaction → `commitTx()` folds them into one undo entry. For text
+inputs the panel passes a `coalesceKey` (`text:<nodeId>:content`) to
+`updateProps`; the history coalesces consecutive commits with the same key
+within 500 ms.
+
+**Trade-offs.**
+- + The scrub implementation is one hook, one begin/end pair; no custom
+  "snapshot before/after" dance.
+- + Transactions and coalescing use the same history primitives — no second
+  code path to maintain.
+- − Transactions must be committed. If a React tree unmounts mid-drag
+  (unlikely but possible on preview toggle), the transaction is orphaned.
+  We mitigate by calling `cancelTx` on effect cleanup; a stricter design
+  would auto-close transactions after a pointer-released listener on
+  `window`.
+
+---
+
 ## Next steps at scale (placeholder — fleshed out in M8)
 
 - **Collaborative editing.** Replace the Zustand doc slice with a Yjs doc of
