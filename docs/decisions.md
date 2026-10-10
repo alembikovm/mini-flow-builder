@@ -74,6 +74,58 @@ every unhandled case.
 
 ---
 
+## 4. Patch-based history + explicit transactions
+
+**Context.** The editor needs undo/redo that groups a slider drag or a color
+pick as a single step, and that coalesces consecutive text input.
+
+**Decision.** Each mutation goes through `commit(label, recipe)` which runs
+`immer.produceWithPatches` and pushes `{patches, inversePatches, label}` onto
+`past`. `beginTransaction(label)` / `commitTransaction()` accumulate patches
+into one entry so a 50-step drag is one undo. `coalesceKey` + a 500 ms window
+merges keystrokes.
+
+**Trade-offs.**
+- + Patches are tiny (just the diff) and serializable, so history can be sent
+  over the wire if we ever add collab or a time-travel debugger.
+- + Transactions and coalescing share the same primitive — no second history
+  path to debug.
+- + Pure functional (no mutable manager class), so tests pass `now` and
+  prod uses `Date.now()`.
+- − immer errors if a recipe both mutates and returns a value. `commit` wraps
+  the recipe in a `(d) => { recipe(d); }` to swallow return values from
+  helpers like `addNode` (which returns the new id).
+- − Patches reference paths by key. Deleting a node and re-adding it with a
+  different id breaks a stored patch chain — fine for in-session undo, not
+  for persisted redo across sessions. We don't persist history.
+
+**At scale.** Replace the stacks with `Y.UndoManager` scoped to the current
+user. Each user has their own stacks; a remote user's edits don't appear in
+your undo. Transactions become Y transactions. Everything else — the recipe
+API, the coalesce key, the transaction wrapping — stays identical.
+
+---
+
+## 5. Separate HistoryManager vs. Zustand state
+
+**Context.** Should history live inside the Zustand store or next to it?
+
+**Decision.** The whole `HistoryState<Doc>` is a field on the Zustand state.
+Mutations go `set({ history: commit(get().history, ...) })`. Non-doc UI state
+(selection, hover, current screen, preview, device, theme) lives as siblings
+on the same store and is explicitly NOT in history.
+
+**Trade-offs.**
+- + One source of truth for subscribers. Components that need the doc read
+  `history.doc` through a selector.
+- + Selection repair after undo/redo is a 3-line helper that runs after any
+  action that could delete a node (`undo`, `redo`, `removeNode`, …).
+- − `set({ history: ... })` means every history mutation returns a new
+  `HistoryState` object, which is fine because Zustand uses shallow equality
+  and selectors like `s => s.history.doc` reach for a stable sub-reference.
+
+---
+
 ## Next steps at scale (placeholder — fleshed out in M8)
 
 - **Collaborative editing.** Replace the Zustand doc slice with a Yjs doc of

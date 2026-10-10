@@ -59,6 +59,12 @@ export type AddNodePosition = { parentId: NodeId; index?: number };
  * The caller usually passes the result of `createNode(type)`. Children are
  * taken from the node itself and must already exist on `doc.nodes` *or* be
  * provided via `extraNodes` (used by duplicateNode).
+ *
+ * Important: we set `parentId` on the node *before* registering it. When the
+ * caller runs this inside `immer.produceWithPatches`, assigning a plain object
+ * into the draft stores it as the value of the "add" patch at that moment —
+ * further mutations to the same reference would not appear in the patch. The
+ * node must be fully-formed before it enters the draft.
  */
 export function insertNode(
   doc: Doc,
@@ -67,11 +73,12 @@ export function insertNode(
   extraNodes: Record<NodeId, Node> = {},
 ): void {
   const parent = requireStack(doc, position.parentId);
-  // Register the new node + any detached subtree nodes.
+  node.parentId = parent.id;
   doc.nodes[node.id] = node;
+  // Extras come from duplicateNode where parentId is already set to the clone
+  // of the appropriate ancestor; see cloneSubtree.
   for (const n of Object.values(extraNodes)) doc.nodes[n.id] = n;
 
-  node.parentId = parent.id;
   const idx = clampInsertIndex(position.index, parent.children.length);
   parent.children.splice(idx, 0, node.id);
 }
