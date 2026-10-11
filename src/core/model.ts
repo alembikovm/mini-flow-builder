@@ -1,12 +1,7 @@
-// Framework-agnostic document model for the Mini Flow Builder.
-// No React, no store, no browser APIs. Everything in this file is data types
-// plus a couple of pure type-guards; all mutation lives in `ops.ts`.
 
 export type NodeId = string;
 export type ScreenId = string;
 
-// Dark mode lives in the model so exported configs round-trip losslessly to
-// a native SDK that renders both themes from the same document.
 export type Color = { light: string; dark: string };
 
 export type Action =
@@ -14,8 +9,6 @@ export type Action =
   | { type: 'close' }
   | { type: 'none' };
 
-// Discriminated size value: `fixed` is the only variant that carries a number.
-// Makes impossible states (fill with a value, fixed without a value) unrepresentable.
 export type SizeValue =
   | { mode: 'fill' }
   | { mode: 'hug' }

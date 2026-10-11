@@ -3,10 +3,6 @@ import { useEditor } from '../../../app/store';
 import { useScrub } from '../../../features/edit-style';
 import { DEFAULT_PADDING } from './common';
 
-/**
- * Shown when nothing is selected: edit the screen root's background + padding
- * without having to click the invisible root first.
- */
 export function ScreenSettings() {
   const updateStyle = useEditor((s) => s.updateStyle);
   const screen = useEditor((s) => s.history.doc.screens[s.currentScreenId]);

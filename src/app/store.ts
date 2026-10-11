@@ -1,13 +1,3 @@
-// Zustand store. Owns the authoritative document (via history) and all
-// ephemeral UI state that is NOT part of history (selection, hover, preview,
-// current screen, JSON panel toggle, flow name).
-//
-// Mutations go through `commit` so every change produces a patch + inverse
-// pair; undo/redo flip between past/future stacks.
-//
-// Convenience actions (addNode, updateStyle, duplicate, ...) are thin wrappers
-// around `commit` with a stable `label` and, where it matters, a `coalesceKey`
-// so e.g. consecutive keystrokes merge into one undo step.
 
 import { create } from 'zustand';
 import type { Draft } from 'immer';
@@ -103,10 +93,8 @@ function loadPublished(): PublishedVersion[] {
 }
 
 export type EditorState = {
-  // Doc + history
   history: HistoryState<Doc>;
 
-  // UI state (not in history)
   flowName: string;
   currentScreenId: ScreenId;
   selectedNodeId: NodeId | null;
@@ -118,7 +106,6 @@ export type EditorState = {
   orientation: Orientation;
   theme: Theme;
 
-  // Autosave / publish
   saveStatus: SaveStatus;
   publishedVersions: PublishedVersion[];
   jsonView: JsonView;
@@ -127,21 +114,17 @@ export type EditorState = {
   setJsonView: (v: JsonView) => void;
   _setSaveStatus: (s: SaveStatus) => void;
 
-  // History actions
   undo: () => void;
   redo: () => void;
   canUndo: () => boolean;
   canRedo: () => boolean;
 
-  // Transactions
   beginTx: (label: string) => void;
   commitTx: () => void;
   cancelTx: () => void;
 
-  // Low-level commit for ad-hoc recipes.
   commit: (label: string, recipe: (draft: Draft<Doc>) => void, coalesceKey?: string) => void;
 
-  // Node ops
   addNode: (type: NodeType, parentId: NodeId, index?: number) => NodeId;
   removeNode: (id: NodeId) => void;
   moveNode: (id: NodeId, parentId: NodeId, index: number) => void;
@@ -155,19 +138,16 @@ export type EditorState = {
     coalesceKey?: string,
   ) => void;
 
-  // Screen ops
   addScreen: (name?: string) => ScreenId;
   renameScreen: (id: ScreenId, name: string) => void;
   removeScreen: (id: ScreenId) => void;
   reorderScreens: (from: number, to: number) => void;
   setCurrentScreen: (id: ScreenId) => void;
 
-  // Selection / hover
   selectNode: (id: NodeId | null) => void;
   selectParent: () => void;
   setHover: (id: NodeId | null) => void;
 
-  // Misc UI
   setFlowName: (name: string) => void;
   setPreview: (on: boolean) => void;
   setShowJson: (on: boolean) => void;
@@ -214,8 +194,6 @@ function initialState(): Pick<
 }
 
 export const useEditor = create<EditorState>()((set, get) => {
-  // After any history change that may have deleted the current selection or
-  // screen, repair the UI state so we never dangle on a missing id.
   const repairAfterHistoryChange = (): void => {
     const { history, selectedNodeId, currentScreenId } = get();
     const patch: Partial<EditorState> = {};
@@ -231,7 +209,6 @@ export const useEditor = create<EditorState>()((set, get) => {
   return {
     ...initialState(),
 
-    // ------- history ------------------------------------------------------
     undo: () => {
       set({ history: undo(get().history) });
       repairAfterHistoryChange();
@@ -256,7 +233,6 @@ export const useEditor = create<EditorState>()((set, get) => {
       });
     },
 
-    // ------- node ops -----------------------------------------------------
     addNode: (type, parentId, index) => {
       let newId = '';
       set({

@@ -1,6 +1,3 @@
-// Debounced autosave to localStorage. Subscribes to the Zustand store once
-// and writes whenever the doc reference or flow name changes. The subscribe
-// callback runs even when no component uses the slice.
 
 import { useEffect, useRef } from 'react';
 import { useEditor, LS_DRAFT_KEY } from '../../app/store';
@@ -9,8 +6,6 @@ import { debounce } from '../../shared/lib';
 const DEBOUNCE_MS = 800;
 
 export function useAutosave(): void {
-  // We debounce the write but mark 'saving' immediately on any change so the
-  // top bar reflects the user's intent even before the write hits storage.
   const lastWrittenRef = useRef<unknown>(null);
 
   useEffect(() => {

@@ -1,6 +1,3 @@
-// Pure document operations. Every function takes a `Doc` (as an immer draft or
-// a plain object — these are intended to be called inside `produce` from
-// history.ts) and mutates it in place. No history, no undo, no store wiring.
 
 import type {
   Doc,
@@ -16,8 +13,6 @@ import type {
 import { isStack } from './model';
 import { newNodeId, newScreenId } from './ids';
 import { createNode } from './defaults';
-
-// ---------- Invariant helpers ------------------------------------------------
 
 export class OpError extends Error {}
 

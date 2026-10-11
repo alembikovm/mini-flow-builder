@@ -4,23 +4,15 @@ import styles from './NumberInput.module.css';
 export type NumberInputProps = {
   value: number;
   onChange: (v: number) => void;
-  /** Fired once when the user starts dragging the label (scrubbing). */
   onBeginScrub?: () => void;
-  /** Fired once when the drag ends (pointer up or capture lost). */
   onEndScrub?: () => void;
   label?: string;
   min?: number;
   max?: number;
   step?: number;
-  /** Pixels of movement per 1 unit change. Default: 1 (1px = 1 step). */
   pxPerStep?: number;
 };
 
-/**
- * Number input with "drag the label to scrub" behaviour. The label-drag
- * creates one continuous edit that the caller wraps in a transaction, so a
- * drag that produces 50 intermediate values becomes a single undo step.
- */
 export function NumberInput({
   value,
   onChange,
@@ -66,7 +58,7 @@ export function NumberInput({
     try {
       e.currentTarget.releasePointerCapture(e.pointerId);
     } catch {
-      /* no-op */
+      void 0;
     }
     onEndScrub?.();
   };
@@ -80,7 +72,6 @@ export function NumberInput({
     setEditing(null);
   };
 
-  // If `value` changes while editing (e.g. undo), discard the pending text.
   const prevValue = useRef(value);
   useEffect(() => {
     if (prevValue.current !== value) {

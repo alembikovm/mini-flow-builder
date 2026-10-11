@@ -1,8 +1,3 @@
-// Zod schema for the exported Doc. Shape mirrors `model.ts` 1:1 so we can
-// cast the parsed value back to `Doc` without a second mapping step.
-// Unknown keys at any level are rejected (`.strict()`) — if we add a model
-// field we have to update the schema in the same change, which is exactly
-// the enforcement interview questions tend to probe for.
 
 import { z } from 'zod';
 import type { Doc } from './model';
@@ -127,14 +122,8 @@ export const DocSchema = z
   })
   .strict();
 
-/**
- * Stub for forward-compat. New schema versions bump the literal above and
- * walk the chain here: 1→2 adds X, 2→3 adds Y. The migrator must never
- * throw — it either returns a v{N} shape or `null` if unrecoverable.
- */
 export function migrate(raw: unknown): unknown {
   if (raw && typeof raw === 'object' && 'schemaVersion' in raw) {
-    // Future: switch on schemaVersion. Only v1 exists today.
     return raw;
   }
   return raw;

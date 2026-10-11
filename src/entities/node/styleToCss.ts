@@ -1,6 +1,3 @@
-// Map our NodeStyle (a deliberate subset of layout props that round-trip to
-// native) to React.CSSProperties. Only properties set on the model are
-// emitted; everything else inherits.
 
 import type { CSSProperties } from 'react';
 import type { Color, Node, NodeStyle, SizeValue, Theme } from './types';
@@ -37,7 +34,6 @@ export function nodeContainerStyle(node: Node, theme: Theme): CSSProperties {
   const s = node.style;
   const css: CSSProperties = {};
 
-  // Flex container (only meaningful on stack, but harmless elsewhere).
   if (node.type === 'stack') {
     css.display = 'flex';
     css.flexDirection = s.direction === 'horizontal' ? 'row' : 'column';
@@ -58,9 +54,6 @@ export function nodeContainerStyle(node: Node, theme: Theme): CSSProperties {
   if (w !== undefined) css.width = w;
   if (h !== undefined) css.height = h;
 
-  // Parent context: fill works relative to flex parent via flex: 1 on the main
-  // axis. We approximate this by setting flex-grow when `fill` is used; for a
-  // cross-axis fill the parent's `align: stretch` already handles width/height.
   if (s.width?.mode === 'fill') css.flexShrink = 1;
   if (s.height?.mode === 'fill') css.flexShrink = 1;
 

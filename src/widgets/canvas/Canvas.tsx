@@ -18,8 +18,6 @@ export function Canvas() {
   const selectedId = useEditor((s) => s.selectedNodeId);
   const hoveredId = useEditor((s) => s.hoveredNodeId);
   const preview = useEditor((s) => s.preview);
-  // `revision` bumps every doc mutation (new history object reference) so the
-  // overlay knows to recompute rects.
   const revision = useEditor((s) => s.history);
   const nodes = useEditor((s) => s.history.doc.nodes);
 
@@ -61,10 +59,6 @@ export function Canvas() {
     [preview, findNodeId, selectNode],
   );
 
-  // Fallback drop target: the whole phone screen accepts drops → appends to
-  // the current screen's root. Per-stack precise drops land in M5+ via each
-  // StackRenderer wrapping itself in a droppable — for M5 the layers tree
-  // already supports precise re-parenting into any stack.
   const { setNodeRef: setCanvasDropRef, isOver: canvasIsOver } = useDroppable({
     id: 'canvas-root',
   });

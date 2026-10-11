@@ -1,7 +1,3 @@
-// Doc ↔ exported SDK JSON. In production the SDK config shape could diverge
-// from our editor-side `Doc` — we'd handle that mapping here (and in
-// `migrate`) rather than coupling the renderer to the wire format.
-// Today the two shapes are the same.
 
 import type { Doc } from './model';
 import { parseDoc, safeParseDoc } from './schema';

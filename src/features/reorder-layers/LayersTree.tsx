@@ -26,7 +26,6 @@ const LayerRow = memo(function LayerRow({ id, depth }: LayerRowProps) {
   const [renaming, setRenaming] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  // Draggable (any node except screen roots)
   const canDrag = node?.parentId !== null;
   const {
     attributes,

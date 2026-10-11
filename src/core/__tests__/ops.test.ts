@@ -20,7 +20,6 @@ import { createNode } from '../defaults';
 import { isStack, type Doc, type StackNode } from '../model';
 
 function freshDoc(): Doc {
-  // structuredClone keeps tests independent even though ops mutate in place.
   return structuredClone(createSeedDoc());
 }
 
@@ -151,14 +150,12 @@ describe('duplicateNode', () => {
       expect(clone.children).toHaveLength(1);
       const cloneChildId = clone.children[0]!;
       expect(cloneChildId).not.toBe(childId);
-      // Props deep-copied by value.
       const origText = doc.nodes[childId];
       const cloneText = doc.nodes[cloneChildId];
       if (origText?.type === 'text' && cloneText?.type === 'text') {
         expect(cloneText.props.content).toBe(origText.props.content);
       }
     }
-    // Position: clone sits immediately after original in parent children.
     const idxOrig = root.children.indexOf(groupId);
     const idxClone = root.children.indexOf(cloneId);
     expect(idxClone).toBe(idxOrig + 1);

@@ -11,7 +11,6 @@ export const OptionsRenderer = memo(function OptionsRenderer({
 }: NodeRendererProps & { node: OptionsNode }) {
   const container = nodeContainerStyle(node, theme);
   const childFill = fillChildStyle(node, parentDirection ?? 'vertical');
-  // Local, non-persistent selection: it only matters in preview mode.
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const onPick = (optId: string): void => {

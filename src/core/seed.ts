@@ -2,11 +2,6 @@ import type { Doc, Node, Screen, StackNode } from './model';
 import { CURRENT_SCHEMA_VERSION } from './model';
 import { newNodeId, newOptionId, newScreenId } from './ids';
 
-/**
- * Build the demo 3-screen flow deterministically.
- * Not using `addScreen`/`addNode` so we can keep the structure explicit and
- * readable — this is the fixture a reader will inspect first.
- */
 export function createSeedDoc(): Doc {
   const doc: Doc = {
     schemaVersion: CURRENT_SCHEMA_VERSION,
@@ -19,7 +14,6 @@ export function createSeedDoc(): Doc {
   const quizScreen = newScreenId();
   const paywallScreen = newScreenId();
 
-  // --- Welcome ---------------------------------------------------------------
   {
     const rootId = newNodeId();
     const titleId = newNodeId();
@@ -114,7 +108,6 @@ export function createSeedDoc(): Doc {
     doc.screens[welcomeScreen] = screen;
   }
 
-  // --- Quiz ------------------------------------------------------------------
   {
     const rootId = newNodeId();
     const questionId = newNodeId();
@@ -194,7 +187,6 @@ export function createSeedDoc(): Doc {
     doc.screens[quizScreen] = { id: quizScreen, name: 'Quiz', rootId };
   }
 
-  // --- Paywall-like ----------------------------------------------------------
   {
     const rootId = newNodeId();
     const titleId = newNodeId();

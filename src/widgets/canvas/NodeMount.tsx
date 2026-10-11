@@ -1,14 +1,3 @@
-// Subscribes to a single node by id and renders it. Memoized on
-// `{id, parentDirection}` so a parent re-render doesn't cascade into
-// children: each NodeMount only re-renders when its own node reference
-// changes in the store, which is the real isolation boundary.
-//
-// NOTE: `renderChild` is a module-level stable callback. An earlier version
-// used an inline arrow that referenced `NodeMount` itself (self-reference);
-// React Fast Refresh wraps components in HMR hooks, and that self-reference
-// through an inline closure produced a *different* NodeMount type for each
-// render — React then re-mounted every child instead of reconciling, and
-// memo never engaged. Keeping renderChild at module scope avoids that.
 
 import { memo, useCallback } from 'react';
 import type { Action, NodeId } from '../../core/model';

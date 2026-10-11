@@ -1,8 +1,3 @@
-// Overlay rendered OUTSIDE the preview DOM. The preview is kept pixel-identical
-// to what a device would render — no selection styling leaks into it. We find
-// node rects by querying `[data-node-id="<id>"]` within the stage, convert
-// bounding rects to the stage's coordinate space, and recompute on resize
-// (via ResizeObserver) or when the doc changes (via the `revision` prop).
 
 import { useEffect, useLayoutEffect, useMemo, useState, type RefObject } from 'react';
 import type { Node, NodeId } from '../../core/model';
@@ -10,13 +5,10 @@ import type { Node, NodeId } from '../../core/model';
 type Rect = { left: number; top: number; width: number; height: number };
 
 export type SelectionOverlayProps = {
-  /** The preview container; getBoundingClientRect is relative to this. */
   stageRef: RefObject<HTMLElement | null>;
   selectedId: NodeId | null;
   hoveredId: NodeId | null;
-  /** A monotonic number that bumps whenever the doc changes. */
   revision: number;
-  /** Looked up to display the node name next to the selection outline. */
   nodeNameLookup: (id: NodeId) => string | null;
   disabled?: boolean;
 };
@@ -126,7 +118,6 @@ export function SelectionOverlay({
   );
 }
 
-/** Produce a lookup that resolves node names from a `Record<NodeId, Node>`. */
 export const makeNameLookup =
   (nodes: Record<NodeId, Node>) =>
   (id: NodeId): string | null =>

@@ -1,8 +1,3 @@
-// Global keyboard shortcuts. Attached once in App via `useShortcuts()`.
-// Rules:
-//   - If focus is inside an editable element, shortcuts other than undo/redo
-//     and Escape are ignored, so typing in a text field never triggers them.
-//   - Undo/redo work even inside inputs (standard editor expectation).
 
 import { useEffect } from 'react';
 import { useEditor } from './store';
@@ -26,7 +21,6 @@ export function useShortcuts(): void {
       const state = useEditor.getState();
       const editable = isEditable(e.target);
 
-      // Undo / Redo (allowed anywhere)
       if (cmdOrCtrl(e) && (e.key === 'z' || e.key === 'Z')) {
         e.preventDefault();
         if (e.shiftKey) state.redo();
@@ -39,7 +33,6 @@ export function useShortcuts(): void {
         return;
       }
 
-      // Escape: select parent, else clear selection.
       if (e.key === 'Escape') {
         if (editable) return;
         const n = state.selectedNodeId ? state.history.doc.nodes[state.selectedNodeId] : null;
@@ -50,7 +43,6 @@ export function useShortcuts(): void {
 
       if (editable) return;
 
-      // Delete / Backspace: remove selected node (unless it's a screen root).
       if (e.key === 'Delete' || e.key === 'Backspace') {
         const id = state.selectedNodeId;
         if (!id) return;
@@ -61,7 +53,6 @@ export function useShortcuts(): void {
         return;
       }
 
-      // Cmd/Ctrl + D: duplicate selected
       if (cmdOrCtrl(e) && (e.key === 'd' || e.key === 'D')) {
         const id = state.selectedNodeId;
         if (!id) return;

@@ -1,7 +1,3 @@
-// Patch-based undo/redo on top of immer. The module is pure functional: every
-// operation takes a `HistoryState<T>` and returns a new one. All timing (for
-// coalescing text input) is injected via `options.now` so tests are
-// deterministic and the UI can pass `Date.now()`.
 
 import { applyPatches, enablePatches, produceWithPatches, type Draft, type Patch } from 'immer';
 
@@ -33,13 +29,7 @@ export type HistoryState<T> = {
 export type Recipe<T> = (draft: Draft<T>) => void;
 
 export type CommitOptions = {
-  /**
-   * Two consecutive commits with the same key within COALESCE_WINDOW_MS merge
-   * into a single history entry. Used for text-field typing so that each
-   * keystroke doesn't become its own undo step.
-   */
   coalesceKey?: string;
-  /** Injected for test determinism. Defaults to `Date.now()`. */
   now?: number;
 };
 
@@ -53,15 +43,11 @@ export function commit<T>(
   recipe: Recipe<T>,
   options: CommitOptions = {},
 ): HistoryState<T> {
-  // Wrap the recipe so any accidental return value from the caller
-  // (e.g. `addNode` returns the new id) is discarded. immer errors if a
-  // producer both mutates a draft AND returns a non-undefined value.
   const [nextDoc, patches, inversePatches] = produceWithPatches(state.doc, (draft) => {
     recipe(draft);
   });
   if (patches.length === 0) return state;
 
-  // Inside a transaction: accumulate patches, don't touch past/future.
   if (state.pendingTx) {
     return {
       ...state,
@@ -69,8 +55,6 @@ export function commit<T>(
       pendingTx: {
         ...state.pendingTx,
         patches: [...state.pendingTx.patches, ...patches],
-        // Newer inverses go FIRST in the inverse array so that applying the
-        // whole array in order rewinds in reverse chronological order.
         inversePatches: [...inversePatches, ...state.pendingTx.inversePatches],
       },
     };

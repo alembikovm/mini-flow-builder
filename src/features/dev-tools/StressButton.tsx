@@ -1,5 +1,3 @@
-// Dev-only: adds a screen with ~500 text nodes in a single commit. Used to
-// measure that per-node render isolation works — see docs/decisions.md M8.
 
 import { useCallback } from 'react';
 import { useEditor } from '../../app/store';

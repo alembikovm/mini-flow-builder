@@ -1,4 +1,3 @@
-// Small helpers shared by every per-type Inspector panel.
 
 import type { NodeStyle, SizeValue } from '../../../core/model';
 

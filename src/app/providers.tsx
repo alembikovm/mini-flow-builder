@@ -1,5 +1,3 @@
-// Composition root for cross-cutting providers.
-// Currently just DndContext — collisions are handled by individual droppables.
 
 import { DndContext, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { useCallback, type ReactNode } from 'react';
@@ -29,7 +27,6 @@ export function AppProviders({ children }: { children: ReactNode }) {
 
       if (!activeData) return;
 
-      // Resolve target stack
       let targetStackId: string | null = null;
       if (overData?.kind === 'stack-drop') targetStackId = overData.nodeId;
       else if (over.id === 'canvas-root') {
@@ -42,13 +39,12 @@ export function AppProviders({ children }: { children: ReactNode }) {
         const newId = addNode(activeData.nodeType, targetStackId);
         selectNode(newId);
       } else if (activeData.kind === 'layer') {
-        // Move into target stack at end.
         const target = doc.nodes[targetStackId];
         if (!target || target.type !== 'stack') return;
         try {
           moveNode(activeData.nodeId, targetStackId, target.children.length);
         } catch {
-          /* ignore cycles — core/ops throws, which we treat as a silent no-op */
+          void 0;
         }
       }
     },

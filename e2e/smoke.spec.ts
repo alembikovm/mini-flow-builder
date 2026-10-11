@@ -3,15 +3,11 @@ import { expect, test } from '@playwright/test';
 test('add text → scrub padding → undo restores value', async ({ page }) => {
   await page.goto('/');
 
-  // Editor chrome is up: the top bar input is present.
   await expect(page.getByRole('textbox', { name: 'Flow name' })).toBeVisible();
 
-  // Baseline count of text nodes rendered on the current (Welcome) screen.
-  // Each node renders a [data-node-id] element; non-stacks are leaves.
   const stageSelector = '.mfb-stage, [class*=phoneScreen]';
   await page.waitForSelector(stageSelector);
 
-  // --- Add a Text element from the palette ----------------------------------
   const before = await page.locator(`${stageSelector} [data-node-id]`).count();
   const paletteText = page.getByTitle('Add Stack');
   await paletteText.click();
