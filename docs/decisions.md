@@ -203,18 +203,70 @@ within 500 ms.
 
 ---
 
-## Next steps at scale (placeholder — fleshed out in M8)
+## 9. Stable module-level `renderChild` for memo isolation
+
+**Context.** With 500 text nodes on screen, editing a single style
+(`gap` on the root stack) was triggering **1002 `NodeMount` renders** in
+StrictMode (501 unique ids × 2). `React.memo` on NodeMount was NOT engaging
+for the 500 unchanged children — memo's compare function was called exactly
+once (for the root).
+
+**Diagnosis.** The parent passed a `renderChild` closure that created each
+child via `<NodeMount id={childId} .../>`. That closure captured `NodeMount`
+from the enclosing module scope. Under `@vitejs/plugin-react` the React Fast
+Refresh wrapper handed each render a *different* NodeMount reference,
+so React's reconciler saw a different component type per iteration and
+re-mounted all children instead of updating them. Memo cannot engage on
+initial mount.
+
+**Decision.** Hoist `renderChild` to module scope and split the component
+into `NodeMountInner` + `export const NodeMount = memo(NodeMountInner)`. The
+`renderChild` arrow now closes over the module-level `NodeMount` export,
+which is stable across renders.
+
+**Measurement.** With this change, editing `gap` on the root of a 500-node
+screen produces exactly **2 NodeMount renders** (1 for the edited root, ×2
+for StrictMode). None of the 500 children re-render. The counter is
+instrumented in `src/widgets/canvas/NodeMount.tsx` and exercised in
+`e2e/perf.spec.ts`.
+
+**Trade-offs.**
+- + Isolation is now per-node — exactly what the spec asked for.
+- − Non-obvious failure mode: an inline `renderChild` closure "looks fine"
+  but silently defeats memoisation under HMR. Documented inline so a future
+  maintainer doesn't reinline it.
+- − The dev-only `__mfbRenderCount` on `window` is a hack; a real codebase
+  would use the React Profiler API via `<Profiler onRender={...}>` wrapped
+  around the preview, dumping to a dev panel.
+
+---
+
+## Next steps at scale
 
 - **Collaborative editing.** Replace the Zustand doc slice with a Yjs doc of
   shape `{ screens: Y.Map<Y.Map>, nodes: Y.Map<Y.Map>, screenOrder: Y.Array }`.
-  Our normalized model maps 1:1. Local ops become Y transactions; history
-  becomes `Y.UndoManager` scoped to the current user.
-- **Schema migrations.** `schema.ts` versions the document. On load,
-  `migrate(doc)` runs numbered migration functions `v1 → v2 → ...`. SDK
-  versions pin to a schema range.
-- **AI edits.** The LLM proposes an array of ops; we commit them inside a
-  single `beginTransaction('AI: <summary>')` so one undo reverts the whole
-  change.
-- **Visual regression.** A Playwright job renders every screen in the preview
-  and diffs against reference screenshots captured by the SDK on a device
-  farm — catches cases where our web preview and native render diverge.
+  Our normalized model maps 1:1 — moving a node is still two `Y.Array`
+  edits. Local ops become `Y.Transaction`s so remote peers see atomic
+  changes; history becomes `Y.UndoManager` scoped to the current user so a
+  collaborator's edits don't appear in your undo. The scrub transactions
+  from M4 translate directly: `beginTransaction` → open a Y.Transaction,
+  `commitTransaction` → close it.
+- **Schema migrations.** `schemaVersion` is already in the doc. For v1→v2
+  add a function `migrateV1toV2(doc: v1): v2` and chain in
+  `migrate(raw)`. Published versions keep their original `schemaVersion`
+  so the SDK can pin to a schema range; the editor always migrates to
+  current.
+- **AI-generated edits.** The LLM returns an array of ops; the editor runs
+  them inside one `beginTransaction('AI: <summary>')`. One undo reverts
+  the whole proposal. A dry-run panel diffs the resulting doc against
+  current before the user accepts.
+- **Visual regression.** A nightly Playwright job renders every screen in
+  preview and diffs against reference screenshots captured by the SDK on
+  a device farm. Catches drift where the web preview and native render
+  diverge (fonts, dark-mode blending, safe-area insets).
+- **Node types as plugins.** Today `NodeType` is a closed union in
+  `model.ts`. For an SDK with many node types, a plugin interface
+  `{ type, schema, defaults, renderer, inspector }` registered at init
+  lets the SDK team ship new nodes without touching the editor's core.
+  The discriminated-union structure stays — it's now generated from
+  the plugin registry.

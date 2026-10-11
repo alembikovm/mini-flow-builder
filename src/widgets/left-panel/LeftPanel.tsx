@@ -2,6 +2,7 @@ import { useState } from 'react';
 import styles from './LeftPanel.module.css';
 import { ElementsPalette } from '../../features/add-element';
 import { LayersTree } from '../../features/reorder-layers';
+import { StressButton } from '../../features/dev-tools';
 
 type Tab = 'elements' | 'layers';
 
@@ -23,7 +24,10 @@ export function LeftPanel() {
           Layers
         </button>
       </div>
-      <div className={styles.body}>{tab === 'elements' ? <ElementsPalette /> : <LayersTree />}</div>
+      <div className={styles.body}>
+        {tab === 'elements' ? <ElementsPalette /> : <LayersTree />}
+        {import.meta.env.DEV && <StressButton />}
+      </div>
     </aside>
   );
 }
